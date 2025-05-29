@@ -1,0 +1,25 @@
+name: Harbor Connection Test
+
+on: [push]  # ทำงานเมื่อมี push เข้ามา
+
+jobs:
+  test-harbor:
+    runs-on: self-hosted  # ใช้ Runner ที่คุณติดตั้ง
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Harbor
+      env:
+        HARBOR_USER: robot$your-robot  # เปลี่ยนเป็นชื่อ Robot Account ของคุณ
+        HARBOR_TOKEN: ${{ secrets.HARBOR_ROBOT_TOKEN }}  # ใช้ Secret ที่ตั้งค่าใน GitHub
+      run: |
+        echo "$HARBOR_TOKEN" | docker login -u "$HARBOR_USER" --password-stdin harbor.yourdomain.com
+        
+    - name: Test Push/Pull Image
+      run: |
+        docker pull alpine
+        docker tag alpine harbor.yourdomain.com/your-project/test-image:latest
+        docker push harbor.yourdomain.com/your-project/test-image:latest
+        docker rmi harbor.yourdomain.com/your-project/test-image:latest
+        docker pull harbor.yourdomain.com/your-project/test-image:latest
